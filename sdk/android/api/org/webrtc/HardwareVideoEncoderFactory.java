@@ -25,6 +25,8 @@ import java.util.List;
 /** Factory for android hardware video encoders. */
 @SuppressWarnings("deprecation") // API 16 requires the use of deprecated methods.
 public class HardwareVideoEncoderFactory implements VideoEncoderFactory {
+  private static final String RK_PREFIX  = "OMX.rk";// 新加RK芯片支持
+
   private static final String TAG = "HardwareVideoEncoderFactory";
 
   // We don't need periodic keyframes. But some HW encoders, Exynos in particular, fails to
@@ -233,7 +235,7 @@ public class HardwareVideoEncoderFactory implements VideoEncoderFactory {
     }
     String name = info.getName();
     // QCOM and Exynos H264 encoders are always supported.
-    return name.startsWith(QCOM_PREFIX) || name.startsWith(EXYNOS_PREFIX);
+    return name.startsWith(QCOM_PREFIX) || name.startsWith(EXYNOS_PREFIX) || name.startsWith(RK_PREFIX);//
   }
 
   private boolean isMediaCodecAllowed(MediaCodecInfo info) {
@@ -271,8 +273,15 @@ public class HardwareVideoEncoderFactory implements VideoEncoderFactory {
     return new BaseBitrateAdjuster();
   }
 
+  /**
+   * 2024.11.15 修改为支持RK芯片的H264硬编码
+   * 待测试
+   */
   private boolean isH264HighProfileSupported(MediaCodecInfo info) {
-    return enableH264HighProfile && Build.VERSION.SDK_INT > Build.VERSION_CODES.M
-        && info.getName().startsWith(EXYNOS_PREFIX);
+    return enableH264HighProfile
+        && Build.VERSION.SDK_INT > Build.VERSION_CODES.M
+//        && info.getName().startsWith(EXYNOS_PREFIX)
+        && info.isHardwareAccelerated()
+            ;
   }
 }
